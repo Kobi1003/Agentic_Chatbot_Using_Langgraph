@@ -1,0 +1,10 @@
+services:
+  langgraph-chatbot:
+    build: .
+    image: langgraph-chatbot:latest
+    container_name: langgraph-chatbot-container
+    ports:
+      - "8501:8501"
+    env_file:
+      - .env
+    restart: unless-stopped

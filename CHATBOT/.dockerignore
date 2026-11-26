@@ -1,0 +1,17 @@
+# Secrets (pass at runtime via --env-file or AWS Environment Variables)
+.env
+.env.example
+
+# Caches & Git
+__pycache__/
+*.pyc
+*.pyo
+.git
+.gitignore
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# Local runtime state
+chat_memory.db*
+chat_meta.json

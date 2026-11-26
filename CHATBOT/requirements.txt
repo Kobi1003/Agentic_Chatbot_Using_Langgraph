@@ -1,0 +1,29 @@
+# Core LangGraph / LangChain
+langgraph==1.2.0
+langchain-groq==1.2.1
+langchain-core
+langchain-community
+langchain-huggingface
+langchain-text-splitters
+
+# Web tools
+tavily-python
+langchain-tavily
+
+# RAG — vector store & embeddings
+faiss-cpu
+sentence-transformers
+
+# RAG — keyword search
+rank-bm25
+
+# RAG — document loaders
+pypdf
+python-docx
+docx2txt
+
+# Utilities
+python-dotenv==1.2.2
+pydantic==2.10.4
+numpy
+streamlit
