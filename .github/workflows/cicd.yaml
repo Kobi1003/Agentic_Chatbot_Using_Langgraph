@@ -6,16 +6,14 @@ on:
       - main
     paths:
       - "CHATBOT/**"
+      - "!CHATBOT/**/*.md"
       - ".github/workflows/cicd.yaml"
-    paths-ignore:
-      - "**/*.md"
   pull_request:
     branches:
       - main
     paths:
       - "CHATBOT/**"
-    paths-ignore:
-      - "**/*.md"
+      - "!CHATBOT/**/*.md"
   workflow_dispatch: # Allow manual run from GitHub Actions tab
 
 jobs:
