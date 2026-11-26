@@ -4,7 +4,7 @@
 
 **A ChatGPT-style multi-thread AI assistant powered by LangGraph, Groq, Hybrid RAG (FAISS + BM25), Tavily real-time web search, and a full Human-in-the-Loop (HITL) safety pipeline — Dockerized and deployed live on AWS EC2.**
 
-[![Live App](https://img.shields.io/badge/Live%20Demo-AWS%20EC2-FF9900?style=for-the-badge&logo=amazonaws&logoColor=white)](http://16.178.174.90:8501)
+[![Live App](https://img.shields.io/badge/Live%20Demo-HTTPS%20%7C%20AWS%20EC2-FF9900?style=for-the-badge&logo=amazonaws&logoColor=white)](https://agentic-chatbot-kobi.duckdns.org/)
 [![Python](https://img.shields.io/badge/Python-3.11+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
 [![LangGraph](https://img.shields.io/badge/LangGraph-1.2.0-1C3C3C?style=for-the-badge&logo=langchain&logoColor=white)](https://langchain-ai.github.io/langgraph/)
 [![Streamlit](https://img.shields.io/badge/Streamlit-UI-FF4B4B?style=for-the-badge&logo=streamlit&logoColor=white)](https://streamlit.io/)
@@ -18,9 +18,9 @@
 
 ## 🌐 Live Deployment
 
-- **Live Server (AWS EC2 · `ap-southeast-2`):** [http://16.178.174.90:8501](http://16.178.174.90:8501)
-- **Container Health Endpoint:** `http://16.178.174.90:8501/_stcore/health`
-- **Deployment Stack:** Docker (`python:3.11-slim` + `uv`) running on Ubuntu AWS EC2 (`16.178.174.90`)
+- **Live HTTPS URL:** [https://agentic-chatbot-kobi.duckdns.org/](https://agentic-chatbot-kobi.duckdns.org/)
+- **Container Health Endpoint:** `https://agentic-chatbot-kobi.duckdns.org/_stcore/health`
+- **Deployment Stack:** Docker (`python:3.11-slim` + `uv`) + Caddy Reverse Proxy (Auto HTTPS) on Ubuntu AWS EC2 (`16.178.174.90`)
 
 ---
 
@@ -127,7 +127,7 @@ streamlit run app.py
 - **Keyword Search:** `BM25Okapi` (`rank-bm25`) + Reciprocal Rank Fusion
 - **Web Search:** `langchain-tavily` / `tavily-python`
 - **Frontend:** Streamlit
-- **Container & Cloud:** Docker, GitHub Actions CI/CD, AWS EC2 (`16.178.174.90`)
+- **Container & Cloud:** Docker, Caddy (HTTPS), GitHub Actions CI/CD, AWS EC2 (`16.178.174.90`)
 - **Observability:** LangSmith
 
 ---
