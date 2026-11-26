@@ -1,4 +1,4 @@
-name: CI/CD Pipeline — Build, Test & Deploy CHATBOT to AWS
+name: CI/CD Pipeline — Build, Test & Deploy CHATBOT
 
 on:
   push:
@@ -7,19 +7,20 @@ on:
     paths:
       - "CHATBOT/**"
       - ".github/workflows/cicd.yaml"
+    paths-ignore:
+      - "**/*.md"
   pull_request:
     branches:
       - main
     paths:
       - "CHATBOT/**"
+    paths-ignore:
+      - "**/*.md"
   workflow_dispatch: # Allow manual run from GitHub Actions tab
-
-env:
-  ECR_REPOSITORY: langgraph-chatbot
 
 jobs:
   # ═══════════════════════════════════════════════════════════════════════════
-  # JOB 1: Continuous Integration (Lint / Syntax Check / Docker Build Verify)
+  # JOB 1: Continuous Integration (Syntax Check + Docker Build Verification)
   # ═══════════════════════════════════════════════════════════════════════════
   ci:
     name: CI — Syntax & Docker Build Check
@@ -43,45 +44,37 @@ jobs:
           docker build -t langgraph-chatbot:ci-test ./CHATBOT
 
   # ═══════════════════════════════════════════════════════════════════════════
-  # JOB 2: Continuous Deployment (Push to Amazon ECR & Deploy to AWS App Runner)
-  # Runs only on push to main (not on pull requests) after CI passes
+  # JOB 2: Continuous Deployment to AWS EC2 via SSH
+  # Runs on push to main after CI passes.
+  # Set GitHub Secrets (EC2_HOST, EC2_USER, EC2_SSH_KEY) to enable auto-deploy.
   # ═══════════════════════════════════════════════════════════════════════════
-  cd-aws:
-    name: CD — Push to ECR & Deploy to AWS
+  cd-ec2:
+    name: CD — Deploy to AWS EC2
     needs: ci
     if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}
-
-      - name: Login to Amazon ECR
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v2
-
-      - name: Build, tag, and push Docker image to ECR
+      - name: Deploy to AWS EC2 via SSH
         env:
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          IMAGE_TAG: ${{ github.sha }}
+          EC2_HOST: ${{ secrets.EC2_HOST }}
+          EC2_USER: ${{ secrets.EC2_USER }}
+          EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
         run: |
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -t $ECR_REGISTRY/$ECR_REPOSITORY:latest ./CHATBOT
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
-
-      - name: Deploy to AWS App Runner
-        env:
-          APP_RUNNER_SERVICE_ARN: ${{ secrets.APP_RUNNER_SERVICE_ARN }}
-        run: |
-          if [ -n "$APP_RUNNER_SERVICE_ARN" ]; then
-            aws apprunner start-deployment --service-arn "$APP_RUNNER_SERVICE_ARN"
-          else
-            echo "APP_RUNNER_SERVICE_ARN secret not set — skipping App Runner trigger."
+          if [ -z "$EC2_HOST" ] || [ -z "$EC2_SSH_KEY" ]; then
+            echo "EC2_HOST / EC2_SSH_KEY secrets not configured — skipping EC2 auto-deploy."
+            exit 0
           fi
+
+          mkdir -p ~/.ssh
+          echo "$EC2_SSH_KEY" > ~/.ssh/ec2_key.pem
+          chmod 600 ~/.ssh/ec2_key.pem
+
+          ssh -o StrictHostKeyChecking=no -i ~/.ssh/ec2_key.pem "${EC2_USER:-ubuntu}@$EC2_HOST" '
+            cd ~/Agentic_Chatbot_Using_Langgraph &&
+            git pull origin main &&
+            cd CHATBOT &&
+            docker build -t langgraph-chatbot:latest . &&
+            (docker rm -f langgraph-chatbot || true) &&
+            docker run -d --name langgraph-chatbot --restart unless-stopped -p 8501:8501 --env-file .env langgraph-chatbot:latest
+          '
